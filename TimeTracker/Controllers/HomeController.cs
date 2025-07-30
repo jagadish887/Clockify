@@ -66,11 +66,11 @@ public class HomeController : Controller
                 .Include(te => te.Project)
                 .ThenInclude(p => p.Client)
                 .Where(te => te.UserId == userId && te.StartTime.Date >= thisWeek && te.EndTime != null)
-                .GroupBy(te => new { te.Project.Client.Name, te.Project.Name })
+                .GroupBy(te => new { ClientName = te.Project.Client.Name, ProjectName = te.Project.Name })
                 .Select(g => new ProjectStatsViewModel
                 {
-                    ClientName = g.Key.Name,
-                    ProjectName = g.Key.Name,
+                    ClientName = g.Key.ClientName,
+                    ProjectName = g.Key.ProjectName,
                     TotalHours = g.Sum(te => te.DurationHours),
                     BillableHours = g.Where(te => te.IsBillable).Sum(te => te.DurationHours)
                 })

@@ -5,7 +5,7 @@ namespace TimeTracker.ViewModels.Reports
     public class ReportDataViewModel
     {
         public ReportFilterViewModel Filter { get; set; } = new();
-        public List<TimeEntry> TimeEntries { get; set; } = new();
+        public List<Models.TimeEntry> TimeEntries { get; set; } = new();
         public List<ProjectSummaryViewModel> Summary { get; set; } = new();
         public double TotalHours { get; set; }
         public double BillableHours { get; set; }

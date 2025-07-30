@@ -95,11 +95,11 @@ namespace TimeTracker.Controllers
                 BillableHours = timeEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours),
                 TotalAmount = timeEntries.Where(te => te.IsBillable).Sum(te => te.TotalAmount),
                 Summary = timeEntries
-                    .GroupBy(te => new { te.Project.Client.Name, te.Project.Name })
+                    .GroupBy(te => new { ClientName = te.Project.Client.Name, ProjectName = te.Project.Name })
                     .Select(g => new ProjectSummaryViewModel
                     {
-                        ClientName = g.Key.Name,
-                        ProjectName = g.Key.Name,
+                        ClientName = g.Key.ClientName,
+                        ProjectName = g.Key.ProjectName,
                         TotalHours = g.Sum(te => te.DurationHours),
                         BillableHours = g.Where(te => te.IsBillable).Sum(te => te.DurationHours),
                         TotalAmount = g.Where(te => te.IsBillable).Sum(te => te.TotalAmount)

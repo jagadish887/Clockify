@@ -10,8 +10,8 @@ namespace TimeTracker.ViewModels.Dashboard
         public double TodayBillableHours { get; set; }
         public double WeekBillableHours { get; set; }
         public double MonthBillableHours { get; set; }
-        public TimeEntry? RunningEntry { get; set; }
-        public List<TimeEntry> RecentEntries { get; set; } = new();
+        public Models.TimeEntry? RunningEntry { get; set; }
+        public List<Models.TimeEntry> RecentEntries { get; set; } = new();
         public List<ProjectStatsViewModel> ProjectStats { get; set; } = new();
     }
 
