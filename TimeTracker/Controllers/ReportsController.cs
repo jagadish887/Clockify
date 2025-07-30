@@ -91,18 +91,18 @@ namespace TimeTracker.Controllers
             {
                 Filter = filter,
                 TimeEntries = timeEntries,
-                TotalHours = timeEntries.Sum(te => te.DurationHours),
-                BillableHours = timeEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours),
-                TotalAmount = timeEntries.Where(te => te.IsBillable).Sum(te => te.TotalAmount),
+                TotalHours = timeEntries.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                BillableHours = timeEntries.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                TotalAmount = timeEntries.Where(te => te.IsBillable).Sum(te => (decimal)(te.EndTime!.Value - te.StartTime).TotalHours * (te.HourlyRate ?? 0)),
                 Summary = timeEntries
                     .GroupBy(te => new { ClientName = te.Project.Client.Name, ProjectName = te.Project.Name })
                     .Select(g => new ProjectSummaryViewModel
                     {
                         ClientName = g.Key.ClientName,
                         ProjectName = g.Key.ProjectName,
-                        TotalHours = g.Sum(te => te.DurationHours),
-                        BillableHours = g.Where(te => te.IsBillable).Sum(te => te.DurationHours),
-                        TotalAmount = g.Where(te => te.IsBillable).Sum(te => te.TotalAmount)
+                        TotalHours = g.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                        BillableHours = g.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                        TotalAmount = g.Where(te => te.IsBillable).Sum(te => (decimal)(te.EndTime!.Value - te.StartTime).TotalHours * (te.HourlyRate ?? 0))
                     })
                     .OrderBy(s => s.ClientName)
                     .ThenBy(s => s.ProjectName)
@@ -200,10 +200,10 @@ namespace TimeTracker.Controllers
                 worksheet.Cell(row, 6).Value = entry.Description ?? "";
                 worksheet.Cell(row, 7).Value = entry.StartTime;
                 worksheet.Cell(row, 8).Value = entry.EndTime;
-                worksheet.Cell(row, 9).Value = Math.Round(entry.DurationHours, 2);
+                worksheet.Cell(row, 9).Value = Math.Round((entry.EndTime!.Value - entry.StartTime).TotalHours, 2);
                 worksheet.Cell(row, 10).Value = entry.IsBillable ? "Yes" : "No";
                 worksheet.Cell(row, 11).Value = entry.HourlyRate ?? 0;
-                worksheet.Cell(row, 12).Value = entry.IsBillable ? entry.TotalAmount : 0;
+                worksheet.Cell(row, 12).Value = entry.IsBillable ? (decimal)(entry.EndTime!.Value - entry.StartTime).TotalHours * (entry.HourlyRate ?? 0) : 0;
             }
 
             // Auto fit columns
@@ -212,11 +212,11 @@ namespace TimeTracker.Controllers
             // Add summary
             var summaryRow = timeEntries.Count + 3;
             worksheet.Cell(summaryRow, 8).Value = "Total Hours:";
-            worksheet.Cell(summaryRow, 9).Value = Math.Round(timeEntries.Sum(te => te.DurationHours), 2);
+            worksheet.Cell(summaryRow, 9).Value = Math.Round(timeEntries.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours), 2);
             worksheet.Cell(summaryRow + 1, 8).Value = "Billable Hours:";
-            worksheet.Cell(summaryRow + 1, 9).Value = Math.Round(timeEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours), 2);
+            worksheet.Cell(summaryRow + 1, 9).Value = Math.Round(timeEntries.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours), 2);
             worksheet.Cell(summaryRow + 2, 8).Value = "Total Amount:";
-            worksheet.Cell(summaryRow + 2, 9).Value = timeEntries.Where(te => te.IsBillable).Sum(te => te.TotalAmount);
+            worksheet.Cell(summaryRow + 2, 9).Value = timeEntries.Where(te => te.IsBillable).Sum(te => (decimal)(te.EndTime!.Value - te.StartTime).TotalHours * (te.HourlyRate ?? 0));
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);

@@ -61,11 +61,14 @@ public class HomeController : Controller
                 .Take(10)
                 .ToListAsync();
 
-            // Get project statistics
-            var projectStats = await _context.TimeEntries
+            // Get project statistics - load data first, then compute in memory
+            var projectStatsData = await _context.TimeEntries
                 .Include(te => te.Project)
                 .ThenInclude(p => p.Client)
                 .Where(te => te.UserId == userId && te.StartTime.Date >= thisWeek && te.EndTime != null)
+                .ToListAsync();
+
+            var projectStats = projectStatsData
                 .GroupBy(te => new { ClientName = te.Project.Client.Name, ProjectName = te.Project.Name })
                 .Select(g => new ProjectStatsViewModel
                 {
@@ -76,16 +79,16 @@ public class HomeController : Controller
                 })
                 .OrderByDescending(ps => ps.TotalHours)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
 
             var dashboardViewModel = new DashboardViewModel
             {
-                TodayHours = todayEntries.Sum(te => te.DurationHours),
-                WeekHours = thisWeekEntries.Sum(te => te.DurationHours),
-                MonthHours = thisMonthEntries.Sum(te => te.DurationHours),
-                TodayBillableHours = todayEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours),
-                WeekBillableHours = thisWeekEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours),
-                MonthBillableHours = thisMonthEntries.Where(te => te.IsBillable).Sum(te => te.DurationHours),
+                TodayHours = todayEntries.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                WeekHours = thisWeekEntries.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                MonthHours = thisMonthEntries.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                TodayBillableHours = todayEntries.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                WeekBillableHours = thisWeekEntries.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                MonthBillableHours = thisMonthEntries.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
                 RunningEntry = runningEntry,
                 RecentEntries = recentEntries,
                 ProjectStats = projectStats
