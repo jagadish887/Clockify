@@ -1,0 +1,229 @@
+@model TimeTracker.ViewModels.Dashboard.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+            <p class="text-muted">Welcome back, @User.Identity.Name!</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">Today</h4>
+                            <h2>@Model.TodayHours.ToString("F1")h</h2>
+                            <small>@Model.TodayBillableHours.ToString("F1")h billable</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calendar-day" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">This Week</h4>
+                            <h2>@Model.WeekHours.ToString("F1")h</h2>
+                            <small>@Model.WeekBillableHours.ToString("F1")h billable</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calendar-week" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">This Month</h4>
+                            <h2>@Model.MonthHours.ToString("F1")h</h2>
+                            <small>@Model.MonthBillableHours.ToString("F1")h billable</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-calendar-month" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Running Timer -->
+    @if (Model.RunningEntry != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="alert alert-warning">
+                    <h5><i class="bi bi-play-circle-fill"></i> Timer Running</h5>
+                    <p><strong>@Model.RunningEntry.Project.Name</strong> 
+                       @if (Model.RunningEntry.TaskItem != null)
+                       {
+                           <span> - @Model.RunningEntry.TaskItem.Name</span>
+                       }
+                    </p>
+                    <p>@Model.RunningEntry.Description</p>
+                    <small>Started: @Model.RunningEntry.StartTime.ToString("HH:mm")</small>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Recent Entries -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-clock-history"></i> Recent Time Entries</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentEntries.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Project</th>
+                                        <th>Description</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var entry in Model.RecentEntries.Take(5))
+                                    {
+                                        <tr>
+                                            <td>@entry.StartTime.ToString("MMM dd")</td>
+                                            <td>@entry.Project.Name</td>
+                                            <td>@entry.Description</td>
+                                            <td>@entry.Duration.ToString(@"hh\:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No time entries yet. <a asp-controller="TimeEntry" asp-action="Create">Start tracking time!</a></p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Stats -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-bar-chart"></i> This Week's Projects</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.ProjectStats.Any())
+                    {
+                        @foreach (var stat in Model.ProjectStats)
+                        {
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>@stat.ProjectName</strong></span>
+                                    <span>@stat.TotalHours.ToString("F1")h</span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" role="progressbar" style="width: @((stat.TotalHours / (Model.ProjectStats.FirstOrDefault()?.TotalHours ?? 1)) * 100)%"></div>
+                                </div>
+                                <small class="text-muted">@stat.BillableHours.ToString("F1")h billable</small>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No project data this week.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="@Url.Action("Create", "TimeEntry")" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-circle"></i> Add Time Entry
+                    </a>
+                    <a href="@Url.Action("Index", "TimeEntry")" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-clock"></i> View All Entries
+                    </a>
+                    <a href="@Url.Action("Index", "Reports")" class="btn btn-outline-success">
+                        <i class="bi bi-graph-up"></i> Generate Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Welcome Page for Non-Authenticated Users -->
+    <div class="text-center">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-4">
+                    <i class="bi bi-stopwatch text-primary"></i> TimeTracker
+                </h1>
+                <p class="lead mb-4">Professional time tracking made simple. Track your work hours, manage projects, and generate detailed reports.</p>
+                
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-clock text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3">Time Tracking</h4>
+                            <p>Start and stop timers, or manually enter your work hours with detailed descriptions.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-folder text-success" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3">Project Management</h4>
+                            <p>Organize your work by clients and projects. Track billable vs non-billable hours.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-graph-up text-info" style="font-size: 3rem;"></i>
+                            <h4 class="mt-3">Detailed Reports</h4>
+                            <p>Generate comprehensive reports and export to Excel for invoicing and analysis.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-person-plus"></i> Get Started
+                    </a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

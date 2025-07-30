@@ -1,87 +1,261 @@
 
-# Clockify Clone - Time Tracking System in .NET Core MVC
+# TimeTracker - Professional Time Tracking System
 
-This project is a feature-rich clone of Clockify, built using ASP.NET Core MVC. It enables time tracking, project and task management, team collaboration, and reporting functionalities for individuals and teams.
+A comprehensive Clockify-style time tracking application built with .NET Core MVC, Entity Framework Core, and ASP.NET Core Identity.
 
-## 🛠 Tech Stack
+## Features
 
-- **Frontend**: Razor Views with Bootstrap 5
+### 🔐 Authentication & Authorization
+- ASP.NET Core Identity with role-based access control
+- Three user roles: Admin, Manager, User
+- Secure login/registration system
+
+### ⏱️ Time Tracking
+- Start/stop timer functionality
+- Manual time entry creation and editing
+- Project and task assignment
+- Billable vs non-billable hour tracking
+- Automatic duration calculation
+
+### 📊 Project Management
+- Client management (Admin/Manager only)
+- Project organization with hourly rates
+- Task management within projects
+- Role-based access control
+
+### 📈 Reporting & Analytics
+- Comprehensive time reports with filtering
+- Excel export functionality
+- Dashboard with statistics (today, week, month)
+- Project-wise breakdowns
+- Role-based data access
+
+### 🎨 Modern UI
+- Bootstrap-based responsive design
+- Bootstrap Icons integration
+- Professional dashboard interface
+- Mobile-friendly design
+
+## Tech Stack
+
 - **Backend**: ASP.NET Core MVC (.NET 8)
-- **ORM**: Entity Framework Core (Code-First)
-- **Database**: SQL Server
+- **Database**: SQL Server with Entity Framework Core
 - **Authentication**: ASP.NET Core Identity
-- **Export**: ClosedXML (for Excel/CSV reports)
+- **Frontend**: Razor Pages with Bootstrap 5
+- **Export**: ClosedXML for Excel generation
+- **Icons**: Bootstrap Icons
 
-## 🧱 Features
+## Prerequisites
 
-### 🔑 Authentication & Roles
-- User Registration/Login
-- Role-based access (Admin, Manager, User)
+- .NET 8 SDK
+- SQL Server (LocalDB, Express, or full version)
+- Visual Studio 2022 or Visual Studio Code
+- Git (optional)
 
-### 🕒 Time Tracking
-- Start/Stop timers or manual time entry
-- Attach entries to projects/tasks
-- Mark as billable or non-billable
+## Getting Started
 
-### 📁 Projects & Clients
-- Create/manage clients
-- Create/manage projects linked to clients
-- Billable flag for projects
+### 1. Clone or Download the Project
 
-### ✅ Tasks
-- Projects consist of tasks
-- Time entries linked to tasks
+```bash
+git clone <repository-url>
+cd TimeTracker
+```
 
-### 📊 Reports
-- Summary and detailed time reports
-- Group by project, user, client, or task
-- Export to Excel
+### 2. Database Setup
 
-### 👥 Team Management (Optional)
-- Assign users to teams
-- Managers view team reports
-- Admins manage all users
+The application uses SQL Server LocalDB by default. The connection string in `appsettings.json` is configured for LocalDB:
 
-## 📦 Entity Models
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=TimeTrackerDb;Trusted_Connection=true;TrustServerCertificate=true;"
+  }
+}
+```
 
-- `AppUser` (inherits from `IdentityUser`)
+#### For LocalDB (Recommended for development):
+Update the connection string to:
+```json
+"DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=TimeTrackerDb;Trusted_Connection=true;MultipleActiveResultSets=true"
+```
+
+#### For SQL Server Express:
+```json
+"DefaultConnection": "Server=.\\SQLEXPRESS;Database=TimeTrackerDb;Trusted_Connection=true;TrustServerCertificate=true;"
+```
+
+### 3. Install Entity Framework Tools (if not already installed)
+
+```bash
+dotnet tool install --global dotnet-ef
+```
+
+### 4. Run Database Migrations
+
+```bash
+cd TimeTracker
+dotnet ef database update
+```
+
+This will create the database and apply the initial schema.
+
+### 5. Build and Run the Application
+
+#### Using Visual Studio:
+1. Open `TimeTracker.sln` in Visual Studio
+2. Set `TimeTracker` as the startup project
+3. Press F5 or click "Start Debugging"
+
+#### Using Command Line:
+```bash
+cd TimeTracker
+dotnet run
+```
+
+The application will be available at:
+- HTTPS: `https://localhost:7086`
+- HTTP: `http://localhost:5086`
+
+### 6. Default Login Credentials
+
+The application automatically creates a default admin user:
+- **Email**: admin@timetracker.com
+- **Password**: Admin123!
+
+## Project Structure
+
+```
+TimeTracker/
+├── Controllers/           # MVC Controllers
+│   ├── AccountController.cs
+│   ├── ClientsController.cs
+│   ├── HomeController.cs
+│   ├── ProjectsController.cs
+│   ├── ReportsController.cs
+│   └── TimeEntryController.cs
+├── Data/                  # Database Context
+│   └── ApplicationDbContext.cs
+├── Models/                # Entity Models
+│   ├── AppUser.cs
+│   ├── Client.cs
+│   ├── Project.cs
+│   ├── TaskItem.cs
+│   ├── TimeEntry.cs
+│   ├── Team.cs
+│   ├── ProjectUser.cs
+│   └── UserTeam.cs
+├── ViewModels/            # View Models
+│   ├── Account/
+│   ├── Dashboard/
+│   ├── Reports/
+│   └── TimeEntry/
+├── Views/                 # Razor Views
+│   ├── Account/
+│   ├── Home/
+│   └── Shared/
+├── wwwroot/              # Static files
+├── Migrations/           # EF Core Migrations
+├── Program.cs            # Application entry point
+└── appsettings.json      # Configuration
+```
+
+## User Roles & Permissions
+
+### Admin
+- Full access to all features
+- Manage all users, clients, projects
+- View all time entries and reports
+- Delete clients and projects
+
+### Manager
+- Manage clients and projects they created
+- View team time entries (can be enhanced)
+- Create and edit projects
+- Generate reports for their team
+
+### User (Default for new registrations)
+- Track their own time entries
+- View assigned projects
+- Generate personal reports
+- Cannot manage clients or projects
+
+## Key Features Explained
+
+### Time Tracking
+- **Timer Mode**: Start/stop timers for real-time tracking
+- **Manual Entry**: Add time entries with custom start/end times
+- **Running Timer Detection**: Automatically stop previous timers when starting new ones
+
+### Project Organization
+- **Clients**: Top-level organization for businesses/organizations
+- **Projects**: Belong to clients, have billable settings and hourly rates
+- **Tasks**: Organize work within projects
+
+### Reporting
+- **Filtering**: By date range, user, project, client, billable status
+- **Export**: Generate Excel files with detailed time data
+- **Dashboard**: Real-time statistics and visual summaries
+
+## Database Schema
+
+The application uses Entity Framework Core with the following main entities:
+- `AppUser` (extends IdentityUser)
 - `Client`
 - `Project`
 - `TaskItem`
 - `TimeEntry`
+- `Team` / `UserTeam` / `ProjectUser` (for team management)
 
-## 🧪 Testing
+## Development Notes
 
-- Unit testing via xUnit or NUnit
-- Focus on time calculations, reports, and role-based access
+### Adding New Features
+1. Create/update models in `Models/` folder
+2. Add migration: `dotnet ef migrations add <MigrationName>`
+3. Update database: `dotnet ef database update`
+4. Create ViewModels in `ViewModels/` folder
+5. Implement controller actions
+6. Create/update views
 
-## 🚀 Future Features
+### Troubleshooting
 
-- PDF Invoicing
-- Time off management
-- Google/Outlook calendar sync
-- API support for mobile apps
+#### Database Connection Issues
+- Ensure SQL Server/LocalDB is running
+- Check connection string in `appsettings.json`
+- Verify database exists: `dotnet ef database update`
 
-## 📂 Project Structure
+#### Migration Issues
+```bash
+# Remove last migration
+dotnet ef migrations remove
 
+# Create new migration
+dotnet ef migrations add <MigrationName>
+
+# Update database
+dotnet ef database update
 ```
-/Controllers
-/Models
-/Views
-/Migrations
-/Data
-wwwroot/
-Program.cs
-Startup.cs
-```
 
-## 🏁 Getting Started
+## Contributing
 
-1. Clone the repository
-2. Update `appsettings.json` with your DB connection string
-3. Run migrations: `Update-Database`
-4. Run the app: `dotnet run` or use Visual Studio
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
----
+## License
 
-© 2025 YourCompany. Built with ❤️ for time tracking.
+This project is licensed under the MIT License.
+
+## Future Enhancements
+
+- [ ] Team management features
+- [ ] Invoicing system
+- [ ] REST API for mobile apps
+- [ ] Time off management
+- [ ] Advanced reporting with charts
+- [ ] Email notifications
+- [ ] Audit logging
+- [ ] Integration with external calendars
+- [ ] Bulk time entry operations
+- [ ] Time entry approval workflow
