@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TimeTracker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81ed5dddf291d519c810a7c627f435a0ee190237")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5042253e05f7e1645585df5c9a375b6f3519bdf9")]
 [assembly: System.Reflection.AssemblyProductAttribute("TimeTracker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TimeTracker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

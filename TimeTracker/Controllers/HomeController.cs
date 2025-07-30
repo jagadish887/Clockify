@@ -31,51 +31,48 @@ public class HomeController : Controller
             var thisWeek = today.AddDays(-(int)today.DayOfWeek);
             var thisMonth = new DateTime(today.Year, today.Month, 1);
 
-            // Get dashboard statistics
-            var todayEntries = await _context.TimeEntries
-                .Where(te => te.UserId == userId && te.StartTime.Date == today && te.EndTime != null)
+            // Get all time entries for the user that we need for calculations
+            var allUserEntries = await _context.TimeEntries
+                .Include(te => te.Project)
+                .ThenInclude(p => p.Client)
+                .Include(te => te.TaskItem)
+                .Where(te => te.UserId == userId)
                 .ToListAsync();
 
-            var thisWeekEntries = await _context.TimeEntries
-                .Where(te => te.UserId == userId && te.StartTime.Date >= thisWeek && te.EndTime != null)
-                .ToListAsync();
+            // Filter entries in memory to avoid EF Core translation issues
+            var todayEntries = allUserEntries
+                .Where(te => te.StartTime.Date == today && te.EndTime != null)
+                .ToList();
 
-            var thisMonthEntries = await _context.TimeEntries
-                .Where(te => te.UserId == userId && te.StartTime.Date >= thisMonth && te.EndTime != null)
-                .ToListAsync();
+            var thisWeekEntries = allUserEntries
+                .Where(te => te.StartTime.Date >= thisWeek && te.EndTime != null)
+                .ToList();
+
+            var thisMonthEntries = allUserEntries
+                .Where(te => te.StartTime.Date >= thisMonth && te.EndTime != null)
+                .ToList();
 
             // Get running timer
-            var runningEntry = await _context.TimeEntries
-                .Include(te => te.Project)
-                .Include(te => te.TaskItem)
-                .Where(te => te.UserId == userId && te.EndTime == null)
-                .FirstOrDefaultAsync();
+            var runningEntry = allUserEntries
+                .Where(te => te.EndTime == null)
+                .FirstOrDefault();
 
             // Get recent entries
-            var recentEntries = await _context.TimeEntries
-                .Include(te => te.Project)
-                .ThenInclude(p => p.Client)
-                .Include(te => te.TaskItem)
-                .Where(te => te.UserId == userId && te.EndTime != null)
+            var recentEntries = allUserEntries
+                .Where(te => te.EndTime != null)
                 .OrderByDescending(te => te.StartTime)
                 .Take(10)
-                .ToListAsync();
+                .ToList();
 
-            // Get project statistics - load data first, then compute in memory
-            var projectStatsData = await _context.TimeEntries
-                .Include(te => te.Project)
-                .ThenInclude(p => p.Client)
-                .Where(te => te.UserId == userId && te.StartTime.Date >= thisWeek && te.EndTime != null)
-                .ToListAsync();
-
-            var projectStats = projectStatsData
+            // Get project statistics for this week
+            var projectStats = thisWeekEntries
                 .GroupBy(te => new { ClientName = te.Project.Client.Name, ProjectName = te.Project.Name })
                 .Select(g => new ProjectStatsViewModel
                 {
                     ClientName = g.Key.ClientName,
                     ProjectName = g.Key.ProjectName,
-                    TotalHours = g.Sum(te => te.DurationHours),
-                    BillableHours = g.Where(te => te.IsBillable).Sum(te => te.DurationHours)
+                    TotalHours = g.Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours),
+                    BillableHours = g.Where(te => te.IsBillable).Sum(te => (te.EndTime!.Value - te.StartTime).TotalHours)
                 })
                 .OrderByDescending(ps => ps.TotalHours)
                 .Take(5)
